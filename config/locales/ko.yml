@@ -1,0 +1,40 @@
+ko:
+  activerecord:
+    models:
+      prompt: 프롬프트
+      category: 카테고리
+      tag: 태그
+      user: 구성원
+      prompt_version: 버전
+    attributes:
+      prompt:
+        title: 제목
+        slug: 주소
+        summary: 한 줄 설명
+        body: 본문
+        usage_notes: 사용 팁
+        model_hint: 권장 모델
+        status: 상태
+        category: 카테고리
+        author: 작성자
+      category:
+        name: 이름
+        slug: 주소
+        color: 색상
+      tag:
+        name: 이름
+      user:
+        name: 이름
+        email: 이메일
+        department: 부서
+        job_title: 직함
+      prompt_version:
+        version_number: 버전 번호
+        title: 제목
+        body: 본문
+    errors:
+      models:
+        prompt:
+          attributes:
+            slug:
+              taken: 와 같은 주소를 쓰는 프롬프트가 이미 있습니다

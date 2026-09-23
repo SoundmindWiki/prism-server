@@ -1,0 +1,19 @@
+# 돌리면서 생기는 것
+/.bundle
+/vendor/bundle
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/public/assets
+
+# 비밀 — 이 둘이 올라가면 credentials 가 통째로 열린다
+/config/master.key
+/config/credentials/*.key
+
+# 배포 대상(서버 주소·키 경로). 사람마다 다르고 공개할 것도 아니다
+/.deploy.env
+
+.DS_Store

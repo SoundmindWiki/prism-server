@@ -1,0 +1,22 @@
+# PostgreSQL. 로컬에서는 Homebrew 로 띄운 서버에 OS 계정으로 붙는다.
+# 운영에서는 DATABASE_URL 하나만 넣으면 된다.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
+  username: <%= ENV.fetch("DATABASE_USER", ENV["USER"]) %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", nil) %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "prism_development") %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME", "prism") %>_test
+
+production:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
