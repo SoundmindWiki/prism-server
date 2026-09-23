@@ -55,7 +55,8 @@ REMOTE
 say "서버 코드 업로드"
 retry rsync -az --delete -e "ssh ${SSH_OPTS[*]}" \
   --exclude 'vendor/' --exclude 'tmp/' --exclude 'log/' --exclude '.bundle/' \
-  --exclude 'storage/' --exclude '.git/' --exclude 'test/' \
+  --exclude 'storage/' --exclude '.git/' --exclude '.gitignore' --exclude 'test/' \
+  --exclude '.deploy.env' \
   "$ROOT/" "$HOST:/srv/prism/server/"
 
 say "gem 설치 · 마이그레이션 · 재시작"
