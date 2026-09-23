@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# 서버(Rails) 재배포 — 코드를 올리고, gem 을 맞추고, 마이그레이션한 뒤 다시 띄운다.
+#
+#   bin/deploy
+#
+# 배포 대상은 환경 변수로 준다. 저장소에 적어 두지 않는 이유는 공개 저장소이기 때문이다.
+# 매번 치기 번거로우면 저장소 맨 위에 .deploy.env 를 만들어 두면 알아서 읽는다 (.gitignore 에 있다).
+#
+#   PRISM_HOST=ubuntu@203.0.113.10
+#   PRISM_KEY=~/keys/prism.pem
+#   PRISM_DOMAIN=prism.example.com
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+[ -f "$ROOT/.deploy.env" ] && { set -a; . "$ROOT/.deploy.env"; set +a; }
+
+HOST="${PRISM_HOST:-}"
+KEY="${PRISM_KEY:-}"
+DOMAIN="${PRISM_DOMAIN:-}"
+
+if [ -z "$HOST" ] || [ -z "$KEY" ]; then
+  echo "PRISM_HOST 와 PRISM_KEY 가 필요합니다. 이 파일 맨 위 설명을 보세요." >&2
+  exit 1
+fi
+
+SSH_OPTS=(-i "${KEY/#\~/$HOME}" -o BatchMode=yes -o ConnectTimeout=20)
+
+say() { printf '\n\033[1m==> %s\033[0m\n' "$1"; }
+
+# 이 서버로 가는 SSH 가 가끔 연결 단계에서 끊긴다. 몇 번 다시 시도한다.
+retry() {
+  local attempt
+  for attempt in 1 2 3 4 5; do
+    "$@" && return 0
+    [ "$attempt" = 5 ] && return 1
+    echo "  연결이 끊겨 다시 시도합니다 ($attempt/5)..." >&2
+    sleep $((attempt * 4))
+  done
+}
+
+remote_install() {
+  ssh "${SSH_OPTS[@]}" "$HOST" 'bash -s' <<'REMOTE'
+set -e
+cd /srv/prism/server
+set -a; . /srv/prism/shared/prism.env; set +a
+bundle config set --local path 'vendor/bundle'
+bundle config set --local without 'development test'
+bundle install --jobs 2 --quiet
+bundle exec rails db:migrate
+sudo systemctl restart prism
+REMOTE
+}
+
+say "서버 코드 업로드"
+retry rsync -az --delete -e "ssh ${SSH_OPTS[*]}" \
+  --exclude 'vendor/' --exclude 'tmp/' --exclude 'log/' --exclude '.bundle/' \
+  --exclude 'storage/' --exclude '.git/' --exclude 'test/' \
+  "$ROOT/" "$HOST:/srv/prism/server/"
+
+say "gem 설치 · 마이그레이션 · 재시작"
+# 재시도할 때마다 스크립트를 처음부터 새로 넘겨야 한다.
+# heredoc 을 retry 에 바로 물리면 여러 시도가 입력 하나를 나눠 읽게 되어,
+# 앞 시도가 절반쯤 읽고 끊기면 다음 시도는 잘린 스크립트를 받는다.
+retry remote_install
+
+if [ -n "$DOMAIN" ]; then
+  say "확인"
+  sleep 3
+  printf '  /api/v1/prompts    %s\n' "$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://$DOMAIN/api/v1/prompts")"
+  echo "  (401 은 토큰 없이 부른 정상 응답입니다)"
+fi
