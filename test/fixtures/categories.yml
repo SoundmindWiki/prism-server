@@ -1,0 +1,13 @@
+dev:
+  name: 개발
+  slug: dev
+  color: indigo
+  position: 1
+  description: 엔지니어링 업무용
+
+office:
+  name: 공통 사무
+  slug: office
+  color: emerald
+  position: 2
+  description: 전 직군 공통

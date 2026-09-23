@@ -1,0 +1,7 @@
+meeting_notes_bank:
+  prompt: meeting_notes
+  domain: bank
+
+code_review_public:
+  prompt: code_review
+  domain: public

@@ -1,0 +1,21 @@
+finance:
+  name: 금융/보험
+  slug: finance
+  position: 1
+
+bank:
+  name: 은행
+  slug: banking
+  parent: finance
+  position: 1
+
+insurance:
+  name: 보험
+  slug: insurance
+  parent: finance
+  position: 2
+
+public:
+  name: 공공
+  slug: public
+  position: 2

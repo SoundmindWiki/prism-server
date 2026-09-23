@@ -1,0 +1,46 @@
+<% digest = BCrypt::Password.create("password123", cost: BCrypt::Engine::MIN_COST) %>
+
+jiwon:
+  name: 김지원
+  email: jiwon@example.com
+  department: 플랫폼
+  job_rank: 매니저
+  job_title: 백엔드 엔지니어
+  role: member
+  active: true
+  password_digest: <%= digest %>
+
+haneul:
+  name: 이하늘
+  email: haneul@example.com
+  department: 프로덕트
+  job_rank: 팀장
+  job_title: 프론트엔드 엔지니어
+  role: member
+  active: true
+  password_digest: <%= digest %>
+
+boss:
+  name: 관리자
+  email: admin@example.com
+  department: 경영지원
+  job_title: 시스템 관리자
+  role: admin
+  active: true
+  password_digest: <%= digest %>
+
+second_admin:
+  name: 부관리자
+  email: admin2@example.com
+  department: 경영지원
+  role: admin
+  active: true
+  password_digest: <%= digest %>
+
+retired:
+  name: 퇴사자
+  email: retired@example.com
+  department: 프로덕트
+  role: member
+  active: false
+  password_digest: <%= digest %>

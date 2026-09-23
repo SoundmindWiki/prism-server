@@ -1,0 +1,7 @@
+code_review_review:
+  prompt: code_review
+  tag: review
+
+meeting_notes_meeting:
+  prompt: meeting_notes
+  tag: meeting

@@ -1,0 +1,46 @@
+code_review:
+  title: 코드 리뷰 요청
+  slug: 코드-리뷰-요청
+  summary: 변경분을 리뷰해 주는 프롬프트
+  body: "아래 {{언어}} 코드를 리뷰해 주세요.\n\n{{코드}}"
+  usage_notes: 파일 단위로 넣으세요
+  model_hint: Claude Opus 5
+  status: published
+  category: dev
+  author: jiwon
+  last_editor: jiwon
+  copy_count: 12
+  view_count: 40
+  variables:
+    - name: 언어
+      description: ""
+      example: ""
+    - name: 코드
+      description: ""
+      example: ""
+
+meeting_notes:
+  title: 회의록 정리
+  slug: 회의록-정리
+  summary: 녹취를 정리해 주는 프롬프트
+  body: "아래 회의 기록을 정리해 주세요.\n\n{{녹취록}}"
+  status: published
+  category: office
+  author: haneul
+  last_editor: haneul
+  copy_count: 30
+  view_count: 90
+  variables:
+    - name: 녹취록
+      description: ""
+      example: ""
+
+retired:
+  title: 안 쓰는 프롬프트
+  slug: 안-쓰는-프롬프트
+  body: 오래된 내용
+  status: archived
+  category: dev
+  author: jiwon
+  copy_count: 1
+  view_count: 2
