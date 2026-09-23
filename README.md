@@ -344,9 +344,43 @@ cd /srv/prism/server && bundle exec rails c    # 콘솔 (환경 변수 먼저 �
 **AWS 보안 그룹(`launch-wizard-1`)이 방화벽이다.** 서버의 ufw 는 꺼져 있다.
 포트를 열고 닫으려면 AWS 콘솔에서 해야 한다.
 
+## 백업
+
+매일 한국 시각 오전 9시 30분(서버 시각 00:30 UTC)에 서버가 스스로 DB 를 덤프한다.
+
+| | |
+|---|---|
+| 스크립트 | `bin/backup.sh` — 배포되면 `/srv/prism/server/bin/backup.sh` |
+| 예약 | `crontab -l` → `30 0 * * *` |
+| 파일 | `/srv/prism/backups/prism-YYYYMMDD.dump` (pg_dump custom 형식, 약 80KB) |
+| 보관 | 서버에 14일 |
+| 로그 | `/srv/prism/log/backup.log` |
+
+여기에 더해 관리자 맥이 하루 한 번 이 덤프를 받아 90일치 따로 보관한다.
+서버가 통째로 날아가도 남아 있게 하려는 것이라 **맥 쪽 스크립트는 개인 장비에 있고 이 저장소에는 없다.**
+
+### 되살리기
+
+```bash
+# 통째로 되돌릴 때
+sudo -u postgres psql -c 'DROP DATABASE prism_production'
+sudo -u postgres psql -c 'CREATE DATABASE prism_production OWNER prism'
+sudo -u postgres pg_restore -d prism_production --no-owner --no-privileges /srv/prism/backups/prism-YYYYMMDD.dump
+sudo systemctl restart prism
+```
+
+**덤프가 진짜 되살아나는지는 가끔 확인해 두는 편이 좋다.** 운영 DB 를 건드리지 않고 확인하는 방법:
+
+```bash
+sudo -u postgres psql -c 'CREATE DATABASE prism_restore_test OWNER prism'
+sudo -u postgres pg_restore -d prism_restore_test --no-owner --no-privileges <덤프 파일>
+sudo -u postgres psql -d prism_restore_test -c 'select count(*) from prompts'   # 운영본과 같아야 한다
+sudo -u postgres psql -c 'DROP DATABASE prism_restore_test'
+```
+
 ## 남은 일
 
-- [ ] **DB 백업** — 지금은 백업이 없다. `pg_dump` 를 cron 에 걸어 두는 것부터
+- [x] DB 백업 — 위 "백업" 참고 (서버 14일 + 맥 90일)
 - [ ] 로그인 시도 제한 (Rails 8 의 `rate_limit`) — 지금은 실패가 기록에만 남는다
 - [ ] 첫 로그인 때 비밀번호 바꾸기 강제
 - [ ] 사내 SSO(SAML/OIDC) 연동 — 위 "인증은 토큰 방식이다" 참고
