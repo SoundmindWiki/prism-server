@@ -204,4 +204,29 @@ class PromptMarkdownTest < ActiveSupport::TestCase
   test "도메인이 없는 문서는 앞부분에 도메인 줄을 쓰지 않는다" do
     assert_not_includes PromptMarkdown.dump(prompts(:retired)), "domains"
   end
+
+  # ---- 셸 스크립트 ----
+
+  test "sh 파일은 한 글자도 건드리지 않고 파일 이름을 제목으로 쓴다" do
+    script = "#!/usr/bin/env bash\n# 배포 스크립트\nset -e\n\necho \"---\"\nrsync -az ./ server:/srv/app/\n"
+    result = parse(script, filename: "deploy-app.sh")
+
+    assert_equal "deploy app", result.attributes["title"]
+    assert_equal script.strip, result.attributes["body"], "첫 주석 줄도 본문에 남아야 한다"
+    assert_empty result.warnings
+  end
+
+  test "확장자가 없어도 셔뱅이 있으면 스크립트로 본다" do
+    result = parse("#!/bin/sh\n# 백업\npg_dump prism\n", filename: "backup")
+
+    assert_equal "backup", result.attributes["title"]
+    assert_includes result.attributes["body"], "# 백업"
+  end
+
+  test "스크립트에 든 --- 는 앞부분으로 읽지 않는다" do
+    script = "---\n# 이건 YAML 이 아니라 스크립트다\necho hi\n"
+    result = parse(script, filename: "weird.sh")
+
+    assert_equal script.strip, result.attributes["body"]
+  end
 end
