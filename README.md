@@ -103,6 +103,11 @@ variables:
 확장자가 없어도 첫 줄이 셔뱅(`#!`)이면 스크립트로 본다. 받아들이는 확장자는
 `PromptMarkdown::SCRIPT_EXTENSIONS` 한 곳에 있다.
 
+**내려받을 때도 `.sh` 로 준다.** 본문이 `#!` 로 시작하면 앞부분을 붙이지 않고 본문만 내려주므로,
+받아서 바로 돌릴 수 있고 올린 파일과 글자 하나까지 같다.
+스크립트인지 아닌지는 서버가 정하고(`PromptMarkdown.filename`), 화면은 응답의
+`download_filename` 을 그대로 쓴다. 양쪽에서 따로 따지면 언젠가 어긋나기 때문이다.
+
 형식은 `server/app/models/prompt_markdown.rb` 한 곳에서 정한다.
 
 ## 실행
@@ -257,8 +262,8 @@ ActiveSupport 가 고쳐지면 `Gemfile` 의 핀을 걷어내면 된다.
 | `POST` | `/prompts/:slug/copy` | 복사 횟수 +1 |
 | `POST` | `/prompts/:slug/move` | 폴더(카테고리) 바꾸기. 내용이 그대로라 새 버전은 안 생김 |
 | `POST` | `/prompts/:slug/archive` | 보관 — 목록에서 내려가지만 주소·히스토리는 유지 |
-| `GET` | `/prompts/:slug/markdown` | `.md` 파일로 내려받기 |
-| `POST` | `/prompts/parse_markdown` | `.md` 내용(`markdown`, `filename`)을 폼에 채울 값으로 읽기. 저장은 안 함, 256KB 까지 |
+| `GET` | `/prompts/:slug/markdown` | 파일로 내려받기 — 보통은 `.md`, 본문이 `#!` 로 시작하면 `.sh` |
+| `POST` | `/prompts/parse_markdown` | `.md`·`.sh` 내용(`markdown`, `filename`)을 폼에 채울 값으로 읽기. 저장은 안 함, 256KB 까지 |
 | `GET` | `/prompts/:slug/versions` | 히스토리 |
 | `POST` | `/prompts/:slug/versions/:n/restore` | 되돌리기 (새 버전으로 쌓임) |
 | `POST` | `/categories` | 폴더 만들기. `parent_slug` 필수 — 맨 위 팀 폴더는 백오피스에서만 |
