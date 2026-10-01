@@ -93,7 +93,7 @@ module Api
         track_activity("prompt.downloaded", target: @prompt)
         send_data PromptMarkdown.dump(@prompt),
                   filename: PromptMarkdown.filename(@prompt),
-                  type: "text/markdown; charset=utf-8",
+                  type: PromptMarkdown.content_type(@prompt),
                   disposition: "attachment"
       end
 

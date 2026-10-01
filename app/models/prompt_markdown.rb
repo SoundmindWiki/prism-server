@@ -45,7 +45,11 @@ module PromptMarkdown
 
   module_function
 
+  # 스크립트는 앞부분을 붙이지 않고 본문만 내려준다. 받아서 바로 돌릴 수 있어야 파일로서 쓸모가 있다.
+  # 그래서 올린 것과 내려받은 것이 글자 하나까지 같다.
   def dump(prompt)
+    return "#{prompt.body.to_s.strip}\n" if script_body?(prompt.body)
+
     meta = {
       "title" => prompt.title,
       "category" => prompt.category.slug,
@@ -61,7 +65,17 @@ module PromptMarkdown
   end
 
   def filename(prompt)
-    "#{prompt.slug}.md"
+    "#{prompt.slug}#{script_body?(prompt.body) ? '.sh' : '.md'}"
+  end
+
+  # 내려줄 때 쓰는 종류. 브라우저가 파일을 어떻게 다룰지 정한다.
+  def content_type(prompt)
+    script_body?(prompt.body) ? "text/x-shellscript; charset=utf-8" : "text/markdown; charset=utf-8"
+  end
+
+  # 셔뱅으로 시작하면 스크립트로 본다. 올릴 때 확장자로 판단한 것과 결과가 같아진다.
+  def script_body?(body)
+    body.to_s.lstrip.start_with?("#!")
   end
 
   # 파일 내용을 읽어 "새 문서" 폼에 채울 값으로 바꾼다. 저장은 하지 않는다.

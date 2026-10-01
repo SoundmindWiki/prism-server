@@ -29,7 +29,9 @@ module PromptSerializer
       body: prompt.body,
       usage_notes: prompt.usage_notes,
       variables: Array(prompt.variables),
-      version_count: prompt.latest_version_number
+      version_count: prompt.latest_version_number,
+      # 내려받을 때 쓸 파일 이름. 스크립트면 .sh, 아니면 .md — 판단은 서버 한 곳에서만 한다.
+      download_filename: PromptMarkdown.filename(prompt)
     )
   end
 end
