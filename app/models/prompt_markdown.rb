@@ -21,6 +21,11 @@
 module PromptMarkdown
   MAX_BYTES = 256 * 1024
 
+  # 스크립트는 본문을 한 글자도 건드리지 않는다.
+  # 셸 스크립트의 첫 줄 주석(`# 무엇을 하는 스크립트`)을 제목으로 가져가 버리면
+  # 받아 간 사람이 그대로 돌렸을 때 설명이 사라진 파일이 된다.
+  SCRIPT_EXTENSIONS = %w[.sh].freeze
+
   FRONT_MATTER = /\A---[ \t]*\n(.*?)\n---[ \t]*(?:\n|\z)/m
   FIRST_HEADING = /\A#[ \t]+(.+?)[ \t#]*(?:\n|\z)/
 
@@ -64,6 +69,8 @@ module PromptMarkdown
   def parse(text, filename: nil)
     warnings = []
     text = text.to_s.delete_prefix("﻿").gsub("\r\n", "\n")
+    return parse_script(text, filename, warnings) if script?(text, filename)
+
     meta, body = split_front_matter(text, warnings)
 
     title = meta.delete("title").to_s.strip.presence
@@ -95,6 +102,31 @@ module PromptMarkdown
   end
 
   # ---- 아래는 내부용 ----
+
+  # 확장자로 먼저 보고, 확장자가 없더라도 셔뱅(#!)이 있으면 스크립트로 친다.
+  def script?(text, filename)
+    name = filename.to_s.downcase
+    SCRIPT_EXTENSIONS.any? { |extension| name.end_with?(extension) } || text.start_with?("#!")
+  end
+
+  # 스크립트는 앞부분(---)도 제목 줄도 찾지 않는다. 파일 이름만 제목으로 쓰고 나머지는 그대로 둔다.
+  def parse_script(text, filename, warnings)
+    body = text.strip
+    attributes = {
+      "title" => title_from_filename(filename).to_s,
+      "category_slug" => nil,
+      "summary" => "",
+      "body" => body,
+      "usage_notes" => "",
+      "model_hint" => "",
+      "domain_slugs" => [],
+      "tag_names" => [],
+      "variables" => []
+    }
+
+    check_limits(attributes, warnings)
+    Result.new(attributes: attributes, warnings: warnings)
+  end
 
   def split_front_matter(text, warnings)
     match = FRONT_MATTER.match(text)
