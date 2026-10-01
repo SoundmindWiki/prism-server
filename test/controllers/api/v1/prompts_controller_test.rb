@@ -353,4 +353,23 @@ class Api::V1::PromptsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unauthorized
   end
+
+  test "스크립트 문서는 .sh 파일로 내려준다" do
+    prompt = prompts(:code_review)
+    prompt.update!(body: "#!/usr/bin/env bash\nset -e\necho hi")
+
+    get markdown_api_v1_prompt_url(prompt.slug), headers: @headers
+
+    assert_response :success
+    assert_equal "text/x-shellscript; charset=utf-8", response.media_type + "; charset=" + response.charset
+    # 한글 파일 이름은 헤더에서 퍼센트 인코딩되어 나간다
+    assert_match(/filename\*=UTF-8''.+\.sh/, response.headers["Content-Disposition"])
+    assert_equal "#!/usr/bin/env bash\nset -e\necho hi\n", response.body
+  end
+
+  test "상세 응답은 내려받을 파일 이름을 함께 준다" do
+    get api_v1_prompt_url(prompts(:code_review).slug), headers: @headers
+
+    assert_equal "#{prompts(:code_review).slug}.md", json_body.dig("prompt", "download_filename")
+  end
 end

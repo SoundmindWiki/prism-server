@@ -229,4 +229,32 @@ class PromptMarkdownTest < ActiveSupport::TestCase
 
     assert_equal script.strip, result.attributes["body"]
   end
+
+  test "스크립트는 앞부분 없이 본문만, .sh 이름으로 내려준다" do
+    prompt = prompts(:code_review)
+    script = "#!/usr/bin/env bash\n# 배포\nset -e\nrsync -az ./ server:/srv/app/"
+    prompt.update!(body: script)
+
+    assert_equal "#{script}\n", PromptMarkdown.dump(prompt)
+    assert_equal "#{prompt.slug}.sh", PromptMarkdown.filename(prompt)
+    assert_equal "text/x-shellscript; charset=utf-8", PromptMarkdown.content_type(prompt)
+  end
+
+  test "스크립트가 아니면 지금처럼 앞부분을 붙인 .md 로 내려준다" do
+    prompt = prompts(:code_review)
+
+    assert_includes PromptMarkdown.dump(prompt), "title:"
+    assert_equal "#{prompt.slug}.md", PromptMarkdown.filename(prompt)
+    assert_equal "text/markdown; charset=utf-8", PromptMarkdown.content_type(prompt)
+  end
+
+  test "스크립트는 내려받아 다시 올리면 글자 하나까지 같다" do
+    prompt = prompts(:code_review)
+    script = "#!/bin/sh\n# 첫 줄 주석\n\necho \"---\"\nexit 0"
+    prompt.update!(body: script)
+
+    again = parse(PromptMarkdown.dump(prompt), filename: PromptMarkdown.filename(prompt))
+
+    assert_equal script, again.attributes["body"]
+  end
 end
